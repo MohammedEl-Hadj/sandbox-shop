@@ -29,9 +29,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        {/* GTM "head snippet" (loaded via next/script) */}
+        {/* Google Tag Manager (loaded via next/script) */}
         <Script
-          id="gtm-head"
+          id="gtm"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html:
@@ -42,4 +42,10 @@ export default function RootLayout({
               "f.parentNode.insertBefore(j,f);" +
               "})(window,document,'script','dataLayer','GTM-MSRXZ3S5');",
           }}
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
        
