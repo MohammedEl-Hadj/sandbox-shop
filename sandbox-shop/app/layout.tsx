@@ -28,10 +28,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {/* GTM loader (head snippet equivalent) */}
+      <head>
+        {/* GTM "head snippet" (loaded via next/script) */}
         <Script
-          id="gtm"
+          id="gtm-head"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html:
