@@ -217,6 +217,20 @@ const [paymentMethod, setPaymentMethod] = useState("card");
 const [newsletterEmail, setNewsletterEmail] = useState("");
 const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 const [topBannerDismissed, setTopBannerDismissed] = useState(false);
+const [deliveryInfo, setDeliveryInfo] = useState({
+  email: "",
+  phone: "",
+  firstName: "",
+  lastName: "",
+  address: "",
+});
+const [paymentInfo, setPaymentInfo] = useState({
+  cardholderName: "",
+  cardNumber: "",
+  expiry: "",
+  cvv: "",
+});
+const [orderNumber, setOrderNumber] = useState("");
 
 const filteredProducts = useMemo(() => {
 const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -374,10 +388,14 @@ setCheckoutStep("delivery");
 
 function placeOrder(): void {
 if (cartItemsDetailed.length === 0) return;
+const newOrderNumber = `ORD-${Date.now().toString().slice(-8)}`;
+setOrderNumber(newOrderNumber);
 setCheckoutStep("complete");
 setCart([]);
 setAppliedCoupon("");
 setCouponCode("");
+setDeliveryInfo({ email: "", phone: "", firstName: "", lastName: "", address: "" });
+setPaymentInfo({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
 }
 
 function resetFilters(): void {
@@ -500,6 +518,10 @@ Help
 </button>
 <button
 className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700"
+onClick={() => {
+  const cartSection = document.querySelector('[data-cart-action="clear-cart"]')?.closest('section');
+  cartSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}}
 data-nav="cart"
 >
 Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
@@ -1171,26 +1193,36 @@ data-checkout-step={step}
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Email address"
+value={deliveryInfo.email}
+onChange={(event) => setDeliveryInfo({ ...deliveryInfo, email: event.target.value })}
 data-checkout-field="email"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Phone number"
+value={deliveryInfo.phone}
+onChange={(event) => setDeliveryInfo({ ...deliveryInfo, phone: event.target.value })}
 data-checkout-field="phone"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="First name"
+value={deliveryInfo.firstName}
+onChange={(event) => setDeliveryInfo({ ...deliveryInfo, firstName: event.target.value })}
 data-checkout-field="first-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Last name"
+value={deliveryInfo.lastName}
+onChange={(event) => setDeliveryInfo({ ...deliveryInfo, lastName: event.target.value })}
 data-checkout-field="last-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2 md:col-span-2"
 placeholder="Address"
+value={deliveryInfo.address}
+onChange={(event) => setDeliveryInfo({ ...deliveryInfo, address: event.target.value })}
 data-checkout-field="address"
 />
 </div>
@@ -1246,21 +1278,29 @@ Buy Now Pay Later
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Cardholder name"
+value={paymentInfo.cardholderName}
+onChange={(event) => setPaymentInfo({ ...paymentInfo, cardholderName: event.target.value })}
 data-payment-field="cardholder-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Card number"
+value={paymentInfo.cardNumber}
+onChange={(event) => setPaymentInfo({ ...paymentInfo, cardNumber: event.target.value })}
 data-payment-field="card-number"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Expiry date"
+value={paymentInfo.expiry}
+onChange={(event) => setPaymentInfo({ ...paymentInfo, expiry: event.target.value })}
 data-payment-field="expiry"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="CVV"
+value={paymentInfo.cvv}
+onChange={(event) => setPaymentInfo({ ...paymentInfo, cvv: event.target.value })}
 data-payment-field="cvv"
 />
 </div>
@@ -1282,6 +1322,18 @@ Confirm delivery method, payment method, coupon, and basket contents.
 </p>
 <div className="grid gap-3 md:grid-cols-2">
 <div className="rounded-xl border border-slate-200 bg-white p-4">
+<p className="font-medium">Delivery To</p>
+<p className="mt-1 text-sm text-slate-600">
+{deliveryInfo.firstName || "First Name"} {deliveryInfo.lastName || "Last Name"}
+</p>
+<p className="text-sm text-slate-600">{deliveryInfo.address || "Address not provided"}</p>
+</div>
+<div className="rounded-xl border border-slate-200 bg-white p-4">
+<p className="font-medium">Contact</p>
+<p className="mt-1 text-sm text-slate-600">{deliveryInfo.email || "Email not provided"}</p>
+<p className="text-sm text-slate-600">{deliveryInfo.phone || "Phone not provided"}</p>
+</div>
+<div className="rounded-xl border border-slate-200 bg-white p-4">
 <p className="font-medium">Shipping</p>
 <p className="mt-1 text-sm text-slate-600">{shippingMethod}</p>
 </div>
@@ -1301,14 +1353,29 @@ Place Order
 )}
 
 {checkoutStep === "complete" && (
-<div className="space-y-3">
-<h3 className="font-semibold">Order Complete</h3>
-<p className="text-sm text-slate-600">
+<div className="space-y-4 rounded-xl bg-emerald-50 p-6">
+<div className="flex items-center justify-center">
+<span className="text-4xl">✓</span>
+</div>
+<h3 className="text-center font-semibold text-emerald-900">Order Confirmed!</h3>
+<p className="text-center text-sm text-emerald-800">
 Thank you for your order. This state is useful for purchase and post-purchase testing.
 </p>
+<div className="rounded-lg bg-white p-4">
+<p className="text-sm text-slate-600">Order Number</p>
+<p className="text-lg font-semibold text-slate-900">{orderNumber}</p>
+</div>
+<div className="grid gap-2 text-sm text-slate-600">
+<p>✓ Order confirmed</p>
+<p>✓ Confirmation email sent</p>
+<p>✓ Tracking available after dispatch</p>
+</div>
 <button
-className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-white"
-onClick={() => setCheckoutStep("delivery")}
+className="w-full rounded-lg border border-slate-300 px-4 py-2 hover:bg-white"
+onClick={() => {
+setCheckoutStep("delivery");
+setOrderNumber("");
+}}
 data-checkout-action="start-new-order"
 >
 Start New Order
