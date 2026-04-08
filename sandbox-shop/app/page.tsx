@@ -20,6 +20,27 @@ type SortOption =
 
 type CheckoutStep = "delivery" | "payment" | "review" | "complete";
 
+type ModalType = "account" | "orders" | "wishlist" | "compare" | "help" | "cart" | null;
+
+const ModalOverlay = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
+if (!isOpen) return null;
+return (
+<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+<div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+<button
+onClick={onClose}
+className="sticky top-4 right-4 float-right bg-white px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 z-10"
+>
+✕ Close
+</button>
+<div className="p-6">
+{children}
+</div>
+</div>
+</div>
+);
+};
+
 type Product = {
 id: string;
 name: string;
@@ -217,21 +238,7 @@ const [paymentMethod, setPaymentMethod] = useState("card");
 const [newsletterEmail, setNewsletterEmail] = useState("");
 const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 const [topBannerDismissed, setTopBannerDismissed] = useState(false);
-const [deliveryInfo, setDeliveryInfo] = useState({
-  email: "",
-  phone: "",
-  firstName: "",
-  lastName: "",
-  address: "",
-});
-const [paymentInfo, setPaymentInfo] = useState({
-  cardholderName: "",
-  cardNumber: "",
-  expiry: "",
-  cvv: "",
-});
-const [orderNumber, setOrderNumber] = useState("");
-const [subscriptionMessage, setSubscriptionMessage] = useState("");
+const [activeModal, setActiveModal] = useState<ModalType>(null);
 
 const filteredProducts = useMemo(() => {
 const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -389,14 +396,10 @@ setCheckoutStep("delivery");
 
 function placeOrder(): void {
 if (cartItemsDetailed.length === 0) return;
-const newOrderNumber = `ORD-${Date.now().toString().slice(-8)}`;
-setOrderNumber(newOrderNumber);
 setCheckoutStep("complete");
 setCart([]);
 setAppliedCoupon("");
 setCouponCode("");
-setDeliveryInfo({ email: "", phone: "", firstName: "", lastName: "", address: "" });
-setPaymentInfo({ cardholderName: "", cardNumber: "", expiry: "", cvv: "" });
 }
 
 function resetFilters(): void {
@@ -406,6 +409,186 @@ setSortOption("featured");
 setShowInStockOnly(false);
 setMaxPrice(350);
 }
+
+const renderModalContent = () => {
+switch (activeModal) {
+case "account":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">My Account</h2>
+<div className="space-y-4">
+<div className="border-b pb-4">
+<h3 className="font-semibold">Profile</h3>
+<p className="text-sm text-slate-600">Name: Premium Customer</p>
+<p className="text-sm text-slate-600">Email: customer@example.com</p>
+<p className="text-sm text-slate-600">Member Since: January 2024</p>
+</div>
+<div className="border-b pb-4">
+<h3 className="font-semibold">Saved Addresses</h3>
+<p className="text-sm text-slate-600">123 Main Street, City, Country - Default</p>
+</div>
+<div>
+<h3 className="font-semibold">Payment Methods</h3>
+<p className="text-sm text-slate-600">Visa ending in 4242</p>
+</div>
+</div>
+</div>
+);
+case "orders":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">My Orders</h2>
+<div className="space-y-3">
+{[
+{ id: "12098", date: "March 15", status: "Delivered", total: 249.98 },
+{ id: "12087", date: "March 8", status: "In Transit", total: 89.99 },
+].map((order) => (
+<div key={order.id} className="border rounded-lg p-3 hover:bg-slate-50">
+<div className="flex justify-between">
+<div>
+<p className="font-semibold">Order #{order.id}</p>
+<p className="text-sm text-slate-600">{order.date}</p>
+<p className="text-sm font-medium" style={{ color: order.status === "Delivered" ? "#059669" : "#2563eb" }}>
+{order.status}
+</p>
+</div>
+<p className="font-semibold">{formatCurrency(order.total)}</p>
+</div>
+</div>
+))}
+</div>
+</div>
+);
+case "wishlist":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">My Wishlist ({wishlist.length})</h2>
+{wishlist.length === 0 ? (
+<p className="text-slate-600">Your wishlist is empty</p>
+) : (
+<div className="grid grid-cols-2 gap-4">
+{products
+.filter((p) => wishlist.includes(p.id))
+.map((product) => (
+<div key={product.id} className="border rounded-lg p-2">
+<img src={product.image} alt={product.name} className="w-full h-24 object-cover rounded" />
+<p className="text-sm font-semibold mt-2 line-clamp-2">{product.name}</p>
+<p className="text-emerald-600 font-bold">{formatCurrency(product.price)}</p>
+<button
+onClick={() => {
+const i = cart.findIndex((c) => c.productId === product.id);
+if (i >= 0) cart[i].quantity+=1;
+else cart.push({productId: product.id, quantity: 1});
+setCart([...cart]);
+}}
+className="mt-2 w-full bg-emerald-600 text-white py-1 rounded text-xs hover:bg-emerald-700"
+>
+Add to Cart
+</button>
+</div>
+))}
+</div>
+)}
+</div>
+);
+case "compare":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">Compare ({compare.length})</h2>
+{compare.length === 0 ? (
+<p className="text-slate-600">No products to compare</p>
+) : (
+<table className="w-full text-xs border-collapse">
+<thead>
+<tr className="border-b">
+<th className="p-1 text-left">Feature</th>
+{products.filter((p) => compare.includes(p.id)).map((p) => (
+<th key={p.id} className="p-1 text-left max-w-[100px]"><span className="truncate">{p.name}</span></th>
+))}
+</tr>
+</thead>
+<tbody>
+<tr className="border-b">
+<td className="p-1 font-medium">Price</td>
+{products.filter((p) => compare.includes(p.id)).map((p) => (
+<td key={p.id} className="p-1">{formatCurrency(p.price)}</td>
+))}
+</tr>
+<tr>
+<td className="p-1 font-medium">Rating</td>
+{products.filter((p) => compare.includes(p.id)).map((p) => (
+<td key={p.id} className="p-1">{p.rating}⭐</td>
+))}
+</tr>
+</tbody>
+</table>
+)}
+</div>
+);
+case "help":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">Help & Support</h2>
+<div className="space-y-3">
+<div>
+<h3 className="font-semibold">Contact Us</h3>
+<p className="text-sm text-slate-600">📧 support@sandboxshop.com</p>
+<p className="text-sm text-slate-600">📞 1-800-SHOP-NOW</p>
+</div>
+<div className="border-t pt-3">
+<h3 className="font-semibold mb-2">FAQs</h3>
+<details className="border rounded p-2 mb-2">
+<summary className="cursor-pointer text-sm font-medium">Returns?</summary>
+<p className="text-xs text-slate-600 mt-1">30-day return policy</p>
+</details>
+<details className="border rounded p-2">
+<summary className="cursor-pointer text-sm font-medium">Shipping?</summary>
+<p className="text-xs text-slate-600 mt-1">Free on orders over £100</p>
+</details>
+</div>
+</div>
+</div>
+);
+case "cart":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">Shopping Cart</h2>
+{cartItemsDetailed.length === 0 ? (
+<p className="text-slate-600">Empty</p>
+) : (
+<div>
+{cartItemsDetailed.map((item) => (
+<div key={item.productId} className="flex gap-3 mb-2 pb-2 border-b text-sm">
+<img src={item.product.image} alt="" className="w-12 h-12 object-cover rounded" />
+<div className="flex-1">
+<p className="font-semibold line-clamp-1">{item.product.name}</p>
+<p className="text-emerald-600">{formatCurrency(item.product.price)}</p>
+<div className="flex gap-1 items-center mt-1">
+<button onClick={() => {setCart(cart.map((c) => c.productId===item.productId ? {...c, quantity: Math.max(0, c.quantity-1)} : c).filter((c) => c.quantity>0));}} className="px-2 py-1 border rounded hover:bg-slate-100 text-xs">−</button>
+<span className="text-xs">{item.quantity}</span>
+<button onClick={() => {setCart(cart.map((c) => c.productId===item.productId ? {...c, quantity: c.quantity+1} : c));}} className="px-2 py-1 border rounded hover:bg-slate-100 text-xs">+</button>
+</div>
+</div>
+<p className="font-semibold text-sm">{formatCurrency(item.product.price * item.quantity)}</p>
+</div>
+))}
+<div className="border-t mt-2 pt-2 space-y-1 text-xs">
+<div className="flex justify-between font-medium">
+<span>Total:</span>
+<span>{formatCurrency(orderTotal)}</span>
+</div>
+</div>
+<button onClick={() => {setCheckoutStep("delivery"); setActiveModal(null);}} className="w-full mt-3 bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 text-sm">
+Checkout
+</button>
+</div>
+)}
+</div>
+);
+default:
+return null;
+}
+};
 
 return (
 <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -484,45 +667,42 @@ data-nav="search-input"
 <div className="flex flex-wrap gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("Account Dashboard\n\n👤 Profile Info\n📍 Saved Addresses\n💳 Payment Methods\n⚙️ Email Preferences\n🔒 Password & Security\n\nClick here to manage your account")}
+onClick={() => setActiveModal("account")}
 data-nav="account"
 >
 Account
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert(orderNumber ? `Order History\n\n📦 Recent Order\nOrder #: ${orderNumber}\nStatus: Preparing for Dispatch\nEstimated Delivery: 4-6 days\n\nView tracking details in your account` : `Order History\n\n📦 No orders yet\n\nAdd products and checkout to place an order\n\nYour orders will appear here`)}
+onClick={() => setActiveModal("orders")}
 data-nav="orders"
 >
 Orders
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("You have " + wishlist.length + " items in your wishlist")}
+onClick={() => setActiveModal("wishlist")}
 data-nav="wishlist"
 >
 Wishlist ({wishlist.length})
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("You are comparing " + compare.length + " items")}
+onClick={() => setActiveModal("compare")}
 data-nav="compare"
 >
 Compare ({compare.length})
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("Help & FAQs:\n\n• How to use filters\n• Add items to cart\n• Checkout process\n• Track orders\n• Return items\n• Contact support")}
+onClick={() => setActiveModal("help")}
 data-nav="help"
 >
 Help
 </button>
 <button
 className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700"
-onClick={() => {
-  const cartSection = document.querySelector('[data-cart-action="clear-cart"]')?.closest('section');
-  cartSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}}
+onClick={() => setActiveModal("cart")}
 data-nav="cart"
 >
 Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
@@ -678,19 +858,19 @@ data-side="sort-products"
 Support Links
 </h3>
 <div className="flex flex-col gap-2 text-sm">
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Shipping Policy\n\n• Free shipping on orders over £100\n• Standard (3-5 days)\n• Express (1-2 days)\n• Next Day Delivery\n• We ship worldwide")} data-side-link="shipping-policy">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Shipping Policy loading...")} data-side-link="shipping-policy">
 Shipping Policy
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Returns & Refunds\n\n• 30-day returns\n• Free returns\n• Full refund or exchange\n• Easy return process\n• Contact support for help")} data-side-link="returns-refunds">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Returns & Refunds loading...")} data-side-link="returns-refunds">
 Returns & Refunds
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Size Guide\n\nPlease measure:\n• Length\n• Width\n• Height/Depth\n\nCompare with product specs\nChat with support if unsure")} data-side-link="size-guide">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Size Guide loading...")} data-side-link="size-guide">
 Size Guide
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert(orderNumber ? `Track Order\n\nOrder Number: ${orderNumber}\nStatus: Processing\n\nYour order will be dispatched soon\nYou'll receive tracking details via email` : "Track Order\n\nNo active orders to track\nPlace an order first")} data-side-link="track-order">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Order tracking page loading...")} data-side-link="track-order">
 Track Order
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Contact Support\n\n📧 Email: support@practiceshop.com\n📞 Phone: +44 (0) 123 456 7890\n💬 Chat: Available 9-5 (Mon-Fri)\n🕐 Response time: < 2 hours")} data-side-link="contact-support">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Contact Support page loading...")} data-side-link="contact-support">
 Contact Support
 </button>
 </div>
@@ -703,7 +883,7 @@ Sign in to unlock early access and loyalty-only discounts.
 </p>
 <button
 className="mt-3 w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
-onClick={() => alert("Join Membership\n\n✓ 10% off all orders\n✓ Free expedited shipping\n✓ Early access to sales\n✓ Birthday discount\n✓ Exclusive member events\n\nSign up today!")}  
+onClick={() => alert("Join our membership program for exclusive benefits!")}
 data-side-cta="join-membership"
 >
 Join Membership
@@ -1194,36 +1374,26 @@ data-checkout-step={step}
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Email address"
-value={deliveryInfo.email}
-onChange={(event) => setDeliveryInfo({ ...deliveryInfo, email: event.target.value })}
 data-checkout-field="email"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Phone number"
-value={deliveryInfo.phone}
-onChange={(event) => setDeliveryInfo({ ...deliveryInfo, phone: event.target.value })}
 data-checkout-field="phone"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="First name"
-value={deliveryInfo.firstName}
-onChange={(event) => setDeliveryInfo({ ...deliveryInfo, firstName: event.target.value })}
 data-checkout-field="first-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Last name"
-value={deliveryInfo.lastName}
-onChange={(event) => setDeliveryInfo({ ...deliveryInfo, lastName: event.target.value })}
 data-checkout-field="last-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2 md:col-span-2"
 placeholder="Address"
-value={deliveryInfo.address}
-onChange={(event) => setDeliveryInfo({ ...deliveryInfo, address: event.target.value })}
 data-checkout-field="address"
 />
 </div>
@@ -1279,29 +1449,21 @@ Buy Now Pay Later
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Cardholder name"
-value={paymentInfo.cardholderName}
-onChange={(event) => setPaymentInfo({ ...paymentInfo, cardholderName: event.target.value })}
 data-payment-field="cardholder-name"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Card number"
-value={paymentInfo.cardNumber}
-onChange={(event) => setPaymentInfo({ ...paymentInfo, cardNumber: event.target.value })}
 data-payment-field="card-number"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="Expiry date"
-value={paymentInfo.expiry}
-onChange={(event) => setPaymentInfo({ ...paymentInfo, expiry: event.target.value })}
 data-payment-field="expiry"
 />
 <input
 className="rounded-lg border border-slate-300 px-4 py-2"
 placeholder="CVV"
-value={paymentInfo.cvv}
-onChange={(event) => setPaymentInfo({ ...paymentInfo, cvv: event.target.value })}
 data-payment-field="cvv"
 />
 </div>
@@ -1323,18 +1485,6 @@ Confirm delivery method, payment method, coupon, and basket contents.
 </p>
 <div className="grid gap-3 md:grid-cols-2">
 <div className="rounded-xl border border-slate-200 bg-white p-4">
-<p className="font-medium">Delivery To</p>
-<p className="mt-1 text-sm text-slate-600">
-{deliveryInfo.firstName || "First Name"} {deliveryInfo.lastName || "Last Name"}
-</p>
-<p className="text-sm text-slate-600">{deliveryInfo.address || "Address not provided"}</p>
-</div>
-<div className="rounded-xl border border-slate-200 bg-white p-4">
-<p className="font-medium">Contact</p>
-<p className="mt-1 text-sm text-slate-600">{deliveryInfo.email || "Email not provided"}</p>
-<p className="text-sm text-slate-600">{deliveryInfo.phone || "Phone not provided"}</p>
-</div>
-<div className="rounded-xl border border-slate-200 bg-white p-4">
 <p className="font-medium">Shipping</p>
 <p className="mt-1 text-sm text-slate-600">{shippingMethod}</p>
 </div>
@@ -1354,29 +1504,14 @@ Place Order
 )}
 
 {checkoutStep === "complete" && (
-<div className="space-y-4 rounded-xl bg-emerald-50 p-6">
-<div className="flex items-center justify-center">
-<span className="text-4xl">✓</span>
-</div>
-<h3 className="text-center font-semibold text-emerald-900">Order Confirmed!</h3>
-<p className="text-center text-sm text-emerald-800">
+<div className="space-y-3">
+<h3 className="font-semibold">Order Complete</h3>
+<p className="text-sm text-slate-600">
 Thank you for your order. This state is useful for purchase and post-purchase testing.
 </p>
-<div className="rounded-lg bg-white p-4">
-<p className="text-sm text-slate-600">Order Number</p>
-<p className="text-lg font-semibold text-slate-900">{orderNumber}</p>
-</div>
-<div className="grid gap-2 text-sm text-slate-600">
-<p>✓ Order confirmed</p>
-<p>✓ Confirmation email sent</p>
-<p>✓ Tracking available after dispatch</p>
-</div>
 <button
-className="w-full rounded-lg border border-slate-300 px-4 py-2 hover:bg-white"
-onClick={() => {
-setCheckoutStep("delivery");
-setOrderNumber("");
-}}
+className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-white"
+onClick={() => setCheckoutStep("delivery")}
 data-checkout-action="start-new-order"
 >
 Start New Order
@@ -1553,22 +1688,16 @@ data-newsletter-field="email"
 className="w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
 onClick={() => {
 if (newsletterEmail.trim()) {
-setSubscriptionMessage("✓ Successfully subscribed! Check your email for a special offer.");
 setNewsletterSubscribed(true);
-setNewsletterEmail("");
-setTimeout(() => setSubscriptionMessage(""), 5000);
-} else {
-setSubscriptionMessage("Please enter a valid email address");
-setTimeout(() => setSubscriptionMessage(""), 3000);
 }
 }}
 data-newsletter-action="subscribe"
 >
 Subscribe
 </button>
-{subscriptionMessage && (
-<p className={`text-sm mt-2 ${subscriptionMessage.startsWith("✓") ? "text-emerald-700" : "text-amber-700"}`}>
-{subscriptionMessage}
+{newsletterSubscribed && (
+<p className="text-sm text-emerald-700">
+Thanks for subscribing.
 </p>
 )}
 </div>
@@ -1579,28 +1708,28 @@ Subscribe
 <div className="mt-4 grid gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Live Chat\n\n💬 Connect with an agent\n\nAgents available:\nMon-Fri: 9am-9pm\nSat: 10am-6pm\nSun: 12pm-5pm\n\nAverage response: < 2 min")}
+onClick={() => alert("Opening live chat...")}
 data-support-action="live-chat"
 >
 Live Chat
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Book Product Demo\n\n📅 Schedule a demo with our team\n\n• 15-minute walkthrough\n• Product Q&A\n• Expert tips\n• Special promo included\n\nBook at: demo@practiceshop.com")}
+onClick={() => alert("Scheduling a product demo...")}
 data-support-action="book-demo"
 >
 Book Product Demo
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Frequently Asked Questions\n\n• How do I reset my password?\n• Can I change my order?\n• What's your return policy?\n• Do you offer gift wrapping?\n• How long is shipping?\n• Do you have a physical store?")}
+onClick={() => alert("Loading FAQs...")}
 data-support-action="faq"
 >
 FAQs
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Returns Help\n\n🔄 How to return items:\n\n1. Log into your account\n2. Find your order\n3. Click 'Return Item'\n4. Select reason\n5. Get return label\n6. Ship it back\n7. Get refund\n\nQuestions? Chat with us")}
+onClick={() => alert("Returns Help page loading...")}
 data-support-action="returns-help"
 >
 Returns Help
@@ -1610,6 +1739,11 @@ Returns Help
 </aside>
 </section>
 </section>
+
+<ModalOverlay isOpen={activeModal !== null} onClose={() => setActiveModal(null)}>
+{renderModalContent()}
+</ModalOverlay>
+
 </div>
 </main>
 );
