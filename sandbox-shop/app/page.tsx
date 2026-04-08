@@ -403,12 +403,17 @@ Spring Campaign
 <span>Free delivery over £100</span>
 <button
 className="rounded-md border border-white/20 px-3 py-1 hover:bg-white/10"
+onClick={() => setSortOption("price-desc")}
 data-cta="top-banner-shop-sale"
 >
 Shop Sale
 </button>
 <button
 className="rounded-md border border-white/20 px-3 py-1 hover:bg-white/10"
+onClick={() => {
+setCouponCode("SAVE10");
+alert("Code SAVE10 copied! Add it to your cart.");
+}}
 data-cta="top-banner-copy-code"
 >
 Copy Code: SAVE10
@@ -429,6 +434,11 @@ Dismiss
 <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4">
 <button
 className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+onClick={() => {
+resetFilters();
+setCart([]);
+setActiveProductId(null);
+}}
 data-nav="logo-home"
 >
 PracticeShop
@@ -455,30 +465,35 @@ data-nav="search-input"
 <div className="flex flex-wrap gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
+onClick={() => alert("Account page would load here")}
 data-nav="account"
 >
 Account
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
+onClick={() => alert("Orders page would load here")}
 data-nav="orders"
 >
 Orders
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
+onClick={() => alert("You have " + wishlist.length + " items in your wishlist")}
 data-nav="wishlist"
 >
 Wishlist ({wishlist.length})
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
+onClick={() => alert("You are comparing " + compare.length + " items")}
 data-nav="compare"
 >
 Compare ({compare.length})
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
+onClick={() => alert("Help page would load here")}
 data-nav="help"
 >
 Help
@@ -496,36 +511,45 @@ Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
 <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3">
 <button
 className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+onClick={() => setSortOption("newest")}
 data-topnav="campaign-new-arrivals"
 >
 New Arrivals
 </button>
 <button
 className="rounded-full border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+onClick={() => setSortOption("featured")}
 data-topnav="campaign-best-sellers"
 >
 Best Sellers
 </button>
 <button
 className="rounded-full border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+onClick={() => {
+setSelectedCategory("Electronics");
+setSortOption("featured");
+}}
 data-topnav="campaign-limited-deals"
 >
 Limited Deals
 </button>
 <button
 className="rounded-full border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+onClick={() => alert("Bundle offers are available in select categories!")}
 data-topnav="campaign-bundles"
 >
 Bundle & Save
 </button>
 <button
 className="rounded-full border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+onClick={() => alert("Find stores near you at practicestore.com")}
 data-topnav="store-locator"
 >
 Store Locator
 </button>
 <button
 className="rounded-full border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+onClick={() => alert("Visit our gift cards page!")}
 data-topnav="gift-cards"
 >
 Gift Cards
@@ -631,19 +655,19 @@ data-side="sort-products"
 Support Links
 </h3>
 <div className="flex flex-col gap-2 text-sm">
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" data-side-link="shipping-policy">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Shipping Policy loading...")} data-side-link="shipping-policy">
 Shipping Policy
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" data-side-link="returns-refunds">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Returns & Refunds loading...")} data-side-link="returns-refunds">
 Returns & Refunds
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" data-side-link="size-guide">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Size Guide loading...")} data-side-link="size-guide">
 Size Guide
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" data-side-link="track-order">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Order tracking page loading...")} data-side-link="track-order">
 Track Order
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" data-side-link="contact-support">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Contact Support page loading...")} data-side-link="contact-support">
 Contact Support
 </button>
 </div>
@@ -656,6 +680,7 @@ Sign in to unlock early access and loyalty-only discounts.
 </p>
 <button
 className="mt-3 w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+onClick={() => alert("Join our membership program for exclusive benefits!")}
 data-side-cta="join-membership"
 >
 Join Membership
@@ -681,18 +706,21 @@ Designed to make GTM and GA4 tagging deliberate and clean.
 <div className="mt-6 flex flex-wrap gap-3">
 <button
 className="rounded-lg bg-white px-5 py-3 font-semibold text-slate-900 hover:bg-slate-100"
+onClick={() => setSortOption("featured")}
 data-hero-cta="shop-featured"
 >
 Shop Featured
 </button>
 <button
 className="rounded-lg border border-white/20 px-5 py-3 font-semibold hover:bg-white/10"
+onClick={() => setSortOption("price-asc")}
 data-hero-cta="view-deals"
 >
 View Deals
 </button>
 <button
 className="rounded-lg border border-white/20 px-5 py-3 font-semibold hover:bg-white/10"
+onClick={() => setIsSideMenuCollapsed(false)}
 data-hero-cta="explore-categories"
 >
 Explore Categories
@@ -727,6 +755,7 @@ Top nav = global actions, left rail = browse/filter, cards = commerce interactio
 <section className="grid gap-4 md:grid-cols-3">
 <button
 className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:bg-slate-50"
+onClick={() => setMaxPrice(350)}
 data-banner="free-shipping"
 >
 <p className="text-sm text-slate-500">Shipping</p>
@@ -737,6 +766,7 @@ Great for testing threshold-based promo exposure.
 </button>
 <button
 className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:bg-slate-50"
+onClick={() => setSelectedCategory("Accessories")}
 data-banner="bundle-offer"
 >
 <p className="text-sm text-slate-500">Bundles</p>
@@ -747,6 +777,7 @@ Useful for internal promotion click tracking.
 </button>
 <button
 className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:bg-slate-50"
+onClick={() => setCouponCode("WELCOME15")}
 data-banner="new-customer-offer"
 >
 <p className="text-sm text-slate-500">Offer</p>
@@ -991,6 +1022,7 @@ Add to Compare
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 hover:bg-slate-100"
+onClick={() => alert("Share product: " + activeProduct.name)}
 data-detail-action="share-product"
 >
 Share Product
@@ -1426,6 +1458,7 @@ Begin Checkout
 </button>
 <button
 className="w-full rounded-lg border border-slate-300 px-4 py-3 hover:bg-slate-100"
+onClick={() => setActiveProductId(null)}
 data-cart-action="continue-shopping"
 >
 Continue Shopping
@@ -1472,24 +1505,28 @@ Thanks for subscribing.
 <div className="mt-4 grid gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
+onClick={() => alert("Opening live chat...")}
 data-support-action="live-chat"
 >
 Live Chat
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
+onClick={() => alert("Scheduling a product demo...")}
 data-support-action="book-demo"
 >
 Book Product Demo
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
+onClick={() => alert("Loading FAQs...")}
 data-support-action="faq"
 >
 FAQs
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
+onClick={() => alert("Returns Help page loading...")}
 data-support-action="returns-help"
 >
 Returns Help
