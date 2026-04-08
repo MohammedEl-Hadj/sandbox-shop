@@ -20,7 +20,7 @@ type SortOption =
 
 type CheckoutStep = "delivery" | "payment" | "review" | "complete";
 
-type ModalType = "account" | "orders" | "wishlist" | "compare" | "help" | "cart" | null;
+type ModalType = "account" | "orders" | "wishlist" | "compare" | "help" | "cart" | "checkout" | null;
 
 const ModalOverlay = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
 if (!isOpen) return null;
@@ -239,6 +239,9 @@ const [newsletterEmail, setNewsletterEmail] = useState("");
 const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 const [topBannerDismissed, setTopBannerDismissed] = useState(false);
 const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+const [deliveryInfo, setDeliveryInfo] = useState({email: '', phone: '', firstName: '', lastName: '', address: ''});
+const [paymentInfo, setPaymentInfo] = useState({cardholderName: '', cardNumber: '', expiry: '', cvv: ''});
 
 const filteredProducts = useMemo(() => {
 const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -578,9 +581,103 @@ return (
 <span>{formatCurrency(orderTotal)}</span>
 </div>
 </div>
-<button onClick={() => {setCheckoutStep("delivery"); setActiveModal(null);}} className="w-full mt-3 bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 text-sm">
+<button onClick={() => {setActiveModal("checkout"); setCheckoutStep("delivery");}} className="w-full mt-3 bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 text-sm">
 Checkout
 </button>
+</div>
+)}
+</div>
+);
+case "checkout":
+return (
+<div>
+<h2 className="text-2xl font-bold mb-4">Checkout</h2>
+<div className="flex justify-between mb-6">
+{["delivery", "payment", "review", "complete"].map((step, index) => (
+<div key={step} className={`flex-1 text-center ${checkoutStep === step ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
+<div className="text-sm">{step.charAt(0).toUpperCase() + step.slice(1)}</div>
+{index < 3 && <div className="h-px bg-slate-300 mt-2 mx-2"></div>}
+</div>
+))}
+</div>
+{checkoutStep === "delivery" && (
+<div>
+<h3 className="text-lg font-semibold mb-4">Delivery Information</h3>
+<div className="grid gap-3 md:grid-cols-2">
+<input value={deliveryInfo.email} onChange={(e) => setDeliveryInfo({...deliveryInfo, email: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Email address" />
+<input value={deliveryInfo.phone} onChange={(e) => setDeliveryInfo({...deliveryInfo, phone: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Phone number" />
+<input value={deliveryInfo.firstName} onChange={(e) => setDeliveryInfo({...deliveryInfo, firstName: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="First name" />
+<input value={deliveryInfo.lastName} onChange={(e) => setDeliveryInfo({...deliveryInfo, lastName: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Last name" />
+<input value={deliveryInfo.address} onChange={(e) => setDeliveryInfo({...deliveryInfo, address: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2 md:col-span-2" placeholder="Address" />
+</div>
+<div className="mt-6 flex justify-end">
+<button onClick={() => setCheckoutStep("payment")} className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Next: Payment</button>
+</div>
+</div>
+)}
+{checkoutStep === "payment" && (
+<div>
+<h3 className="text-lg font-semibold mb-4">Payment</h3>
+<div className="flex flex-wrap gap-2 mb-4">
+{["card", "paypal", "klarna"].map((method) => (
+<button key={method} onClick={() => setPaymentMethod(method)} className={`rounded-full px-4 py-2 text-sm ${paymentMethod === method ? 'bg-slate-900 text-white' : 'border border-slate-300 hover:bg-slate-100'}`}>
+{method.charAt(0).toUpperCase() + method.slice(1)}
+</button>
+))}
+</div>
+{paymentMethod === "card" && (
+<div className="grid gap-3 md:grid-cols-2">
+<input value={paymentInfo.cardholderName} onChange={(e) => setPaymentInfo({...paymentInfo, cardholderName: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Cardholder name" />
+<input value={paymentInfo.cardNumber} onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Card number" />
+<input value={paymentInfo.expiry} onChange={(e) => setPaymentInfo({...paymentInfo, expiry: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="Expiry date" />
+<input value={paymentInfo.cvv} onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})} className="rounded-lg border border-slate-300 px-4 py-2" placeholder="CVV" />
+</div>
+)}
+<div className="mt-6 flex justify-between">
+<button onClick={() => setCheckoutStep("delivery")} className="border border-slate-300 px-4 py-2 rounded hover:bg-slate-100">Back</button>
+<button onClick={() => setCheckoutStep("review")} className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Next: Review</button>
+</div>
+</div>
+)}
+{checkoutStep === "review" && (
+<div>
+<h3 className="text-lg font-semibold mb-4">Review & Place Order</h3>
+<div className="mb-4">
+<h4 className="font-semibold">Items</h4>
+{cartItemsDetailed.map((item) => (
+<div key={item.productId} className="flex justify-between text-sm mb-1">
+<span>{item.product.name} x{item.quantity}</span>
+<span>{formatCurrency(item.product.price * item.quantity)}</span>
+</div>
+))}
+</div>
+<div className="mb-4">
+<h4 className="font-semibold">Shipping</h4>
+<p className="text-sm">{shippingMethod}</p>
+</div>
+<div className="mb-4">
+<h4 className="font-semibold">Payment</h4>
+<p className="text-sm">{paymentMethod}</p>
+</div>
+<div className="border-t pt-4">
+<div className="flex justify-between font-semibold">
+<span>Total</span>
+<span>{formatCurrency(orderTotal)}</span>
+</div>
+</div>
+<div className="mt-6 flex justify-between">
+<button onClick={() => setCheckoutStep("payment")} className="border border-slate-300 px-4 py-2 rounded hover:bg-slate-100">Back</button>
+<button onClick={placeOrder} className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Place Order</button>
+</div>
+</div>
+)}
+{checkoutStep === "complete" && (
+<div>
+<h3 className="text-lg font-semibold mb-4">Order Complete</h3>
+<p className="text-sm text-slate-600">Thank you for your order. You will receive a confirmation email shortly.</p>
+<div className="mt-6 flex justify-end">
+<button onClick={() => {setActiveModal(null); setCheckoutStep("delivery");}} className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Continue Shopping</button>
+</div>
 </div>
 )}
 </div>
