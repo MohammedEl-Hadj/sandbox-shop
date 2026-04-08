@@ -231,6 +231,7 @@ const [paymentInfo, setPaymentInfo] = useState({
   cvv: "",
 });
 const [orderNumber, setOrderNumber] = useState("");
+const [subscriptionMessage, setSubscriptionMessage] = useState("");
 
 const filteredProducts = useMemo(() => {
 const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -483,14 +484,14 @@ data-nav="search-input"
 <div className="flex flex-wrap gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("Account page would load here")}
+onClick={() => alert("Account Dashboard\n\n👤 Profile Info\n📍 Saved Addresses\n💳 Payment Methods\n⚙️ Email Preferences\n🔒 Password & Security\n\nClick here to manage your account")}
 data-nav="account"
 >
 Account
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("Orders page would load here")}
+onClick={() => alert(orderNumber ? `Order History\n\n📦 Recent Order\nOrder #: ${orderNumber}\nStatus: Preparing for Dispatch\nEstimated Delivery: 4-6 days\n\nView tracking details in your account` : `Order History\n\n📦 No orders yet\n\nAdd products and checkout to place an order\n\nYour orders will appear here`)}
 data-nav="orders"
 >
 Orders
@@ -511,7 +512,7 @@ Compare ({compare.length})
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-onClick={() => alert("Help page would load here")}
+onClick={() => alert("Help & FAQs:\n\n• How to use filters\n• Add items to cart\n• Checkout process\n• Track orders\n• Return items\n• Contact support")}
 data-nav="help"
 >
 Help
@@ -677,19 +678,19 @@ data-side="sort-products"
 Support Links
 </h3>
 <div className="flex flex-col gap-2 text-sm">
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Shipping Policy loading...")} data-side-link="shipping-policy">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Shipping Policy\n\n• Free shipping on orders over £100\n• Standard (3-5 days)\n• Express (1-2 days)\n• Next Day Delivery\n• We ship worldwide")} data-side-link="shipping-policy">
 Shipping Policy
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Returns & Refunds loading...")} data-side-link="returns-refunds">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Returns & Refunds\n\n• 30-day returns\n• Free returns\n• Full refund or exchange\n• Easy return process\n• Contact support for help")} data-side-link="returns-refunds">
 Returns & Refunds
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Size Guide loading...")} data-side-link="size-guide">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Size Guide\n\nPlease measure:\n• Length\n• Width\n• Height/Depth\n\nCompare with product specs\nChat with support if unsure")} data-side-link="size-guide">
 Size Guide
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Order tracking page loading...")} data-side-link="track-order">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert(orderNumber ? `Track Order\n\nOrder Number: ${orderNumber}\nStatus: Processing\n\nYour order will be dispatched soon\nYou'll receive tracking details via email` : "Track Order\n\nNo active orders to track\nPlace an order first")} data-side-link="track-order">
 Track Order
 </button>
-<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Contact Support page loading...")} data-side-link="contact-support">
+<button className="rounded-lg border border-slate-200 px-3 py-2 text-left hover:bg-slate-100" onClick={() => alert("Contact Support\n\n📧 Email: support@practiceshop.com\n📞 Phone: +44 (0) 123 456 7890\n💬 Chat: Available 9-5 (Mon-Fri)\n🕐 Response time: < 2 hours")} data-side-link="contact-support">
 Contact Support
 </button>
 </div>
@@ -702,7 +703,7 @@ Sign in to unlock early access and loyalty-only discounts.
 </p>
 <button
 className="mt-3 w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
-onClick={() => alert("Join our membership program for exclusive benefits!")}
+onClick={() => alert("Join Membership\n\n✓ 10% off all orders\n✓ Free expedited shipping\n✓ Early access to sales\n✓ Birthday discount\n✓ Exclusive member events\n\nSign up today!")}  
 data-side-cta="join-membership"
 >
 Join Membership
@@ -1552,16 +1553,22 @@ data-newsletter-field="email"
 className="w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
 onClick={() => {
 if (newsletterEmail.trim()) {
+setSubscriptionMessage("✓ Successfully subscribed! Check your email for a special offer.");
 setNewsletterSubscribed(true);
+setNewsletterEmail("");
+setTimeout(() => setSubscriptionMessage(""), 5000);
+} else {
+setSubscriptionMessage("Please enter a valid email address");
+setTimeout(() => setSubscriptionMessage(""), 3000);
 }
 }}
 data-newsletter-action="subscribe"
 >
 Subscribe
 </button>
-{newsletterSubscribed && (
-<p className="text-sm text-emerald-700">
-Thanks for subscribing.
+{subscriptionMessage && (
+<p className={`text-sm mt-2 ${subscriptionMessage.startsWith("✓") ? "text-emerald-700" : "text-amber-700"}`}>
+{subscriptionMessage}
 </p>
 )}
 </div>
@@ -1572,28 +1579,28 @@ Thanks for subscribing.
 <div className="mt-4 grid gap-2">
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Opening live chat...")}
+onClick={() => alert("Live Chat\n\n💬 Connect with an agent\n\nAgents available:\nMon-Fri: 9am-9pm\nSat: 10am-6pm\nSun: 12pm-5pm\n\nAverage response: < 2 min")}
 data-support-action="live-chat"
 >
 Live Chat
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Scheduling a product demo...")}
+onClick={() => alert("Book Product Demo\n\n📅 Schedule a demo with our team\n\n• 15-minute walkthrough\n• Product Q&A\n• Expert tips\n• Special promo included\n\nBook at: demo@practiceshop.com")}
 data-support-action="book-demo"
 >
 Book Product Demo
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Loading FAQs...")}
+onClick={() => alert("Frequently Asked Questions\n\n• How do I reset my password?\n• Can I change my order?\n• What's your return policy?\n• Do you offer gift wrapping?\n• How long is shipping?\n• Do you have a physical store?")}
 data-support-action="faq"
 >
 FAQs
 </button>
 <button
 className="rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-100"
-onClick={() => alert("Returns Help page loading...")}
+onClick={() => alert("Returns Help\n\n🔄 How to return items:\n\n1. Log into your account\n2. Find your order\n3. Click 'Return Item'\n4. Select reason\n5. Get return label\n6. Ship it back\n7. Get refund\n\nQuestions? Chat with us")}
 data-support-action="returns-help"
 >
 Returns Help
